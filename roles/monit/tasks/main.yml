@@ -1,0 +1,49 @@
+---
+- name: Monit | package
+  apt:
+    name: monit
+    update_cache: yes
+    cache_valid_time: 3600
+    state: present
+
+- name: Monit | includes folder
+  file:
+    path: "{{ monit_includes_dir }}"
+    state: directory
+    mode: 0600
+
+- name: Monit | lib folder
+  file:
+    path: "{{ monit_lib_folder }}"
+    state: directory
+    mode: 0600
+
+- name: Monit | config
+  template:
+    src: monitrc.j2
+    dest: "{{ monitrc_conf }}"
+    owner: root
+    group: root
+    mode: 0700
+  notify: restart monit
+
+- name: Monit | Include mail vars
+  include_vars: mail.yml
+
+- name: Monit | Mail alerts
+  template:
+    src: mail.j2
+    dest: "{{ monit_includes_dir }}/mail"
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart monit
+
+- name: Monit | Monitoring config
+  copy:
+    src: system_monitoring
+    dest: "{{ monit_includes_dir }}"
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart monit

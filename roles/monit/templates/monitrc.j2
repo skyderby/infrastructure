@@ -1,0 +1,6 @@
+# {{ ansible_managed }}
+
+set daemon {{ monit_cycle }}
+set logfile {{ monit_log_destination }}
+
+include {{ monit_includes_dir }}/*

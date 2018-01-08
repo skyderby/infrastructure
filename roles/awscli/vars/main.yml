@@ -1,0 +1,8 @@
+---
+aws_cli_user: '{{ ansible_ssh_user }}'
+aws_cli_group: '{{ ansible_ssh_user }}'
+
+output_format: 'json'
+region: '{{ aws_region }}'
+access_key_id: '{{ aws_access_key_id }}'
+secret_access_key: '{{ aws_secret_access_key }}'

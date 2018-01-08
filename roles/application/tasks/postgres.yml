@@ -1,0 +1,17 @@
+---
+- name: Postgres | directory
+  file:
+    path: "{{ app_home }}/postgres"
+    state: directory
+
+- name: Postgres | configuration
+  copy:
+    src: postgres/postgresql.conf
+    dest: "{{ app_home }}/postgres/"
+  notify: Restart Postgres
+
+- name: Postgres | pg_hba
+  copy:
+    src: postgres/pg_hba.conf
+    dest: "{{ app_home }}/postgres/"
+  notify: Restart Postgres

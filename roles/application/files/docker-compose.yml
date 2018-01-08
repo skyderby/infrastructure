@@ -1,0 +1,68 @@
+version: '2'
+
+services:
+  db:
+    image: postgres:9.6.4
+    env_file: db.env
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data_96:/var/lib/postgresql/data
+      - pg_wal_archive:/wal_archive
+      - ./postgres/pg_hba.conf:/var/lib/postgresql/data/pg_hba.conf
+      - ./postgres/postgresql.conf:/var/lib/postgresql/data/postgresql.conf
+    restart: always
+
+  app:
+    image: skyderby/app:latest
+    env_file: app.env
+    volumes:
+      - /opt/app/public
+      - app_system:/opt/app/public/system
+    depends_on:
+      - db
+      - redis
+    ports:
+      - "8000:8000"
+    restart: always
+
+  workers:
+    image: skyderby/app:latest
+    env_file: app.env
+    volumes:
+      - ./database.yml:/opt/app/config/database.yml:ro
+      - app_system:/opt/app/public/system
+    depends_on:
+      - db
+      - redis
+    command: "bundle exec sidekiq -q default -q mailers -c 5"
+    restart: always
+
+  redis:
+    image: redis:3.0.5
+    volumes:
+      - redis_data:/data
+    restart: always
+  
+  web:
+    image: nginx:stable
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/dhparam.pem:/etc/pki/nginx/dhparam.pem:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    volumes_from:
+      - app:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: always
+
+volumes:
+  redis_data:
+    external: true
+  pg_data_96:
+    external: false
+  pg_wal_archive:
+    external: true
+  app_system:
+    external: true

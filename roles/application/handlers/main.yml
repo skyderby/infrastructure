@@ -1,0 +1,15 @@
+---
+- name: Restart NGINX
+  shell: docker-compose restart web
+  args:
+    chdir: "{{ app_home }}"
+
+- name: Restart Postgres
+  shell: docker-compose restart db
+  args:
+    chdir: "{{ app_home }}"
+
+- name: Soft recreate containers
+  shell: docker-compose up -d
+  args:
+    chdir: "{{ app_home }}"

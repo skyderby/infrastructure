@@ -1,0 +1,61 @@
+---
+- name: Add Docker repository key
+  apt_key:
+    id: "{{ apt_key_sig }}"
+    keyserver: "{{ apt_key_url }}"
+    state: present
+  register: add_repository_key
+  ignore_errors: true
+
+- name: Alternative | Add Docker repository key
+  shell: "apt-key adv --fetch-keys {{ apt-key-url }}"
+  when: add_repository_key|failed
+
+- name: Install Docker dependencies
+  apt:
+    name: '{{ item }}'
+    state: present
+  with_items:
+    - apt-transport-https
+    - ca-certificates
+    - curl
+    - software-properties-common
+
+- name: Add Docker repository and update apt cache
+  apt_repository:
+    repo: "{{ apt_repository }}"
+    mode: '644'
+    update_cache: yes
+    state: present
+
+- name: Install (or update) docker package
+  apt:
+    name: 'docker-{{ docker_edition }}={{ docker_version }}~{{ docker_edition }}-0~{{ docker_distribution | lower }}'
+    state: present
+    update_cache: True
+    cache_valid_time: 86400
+
+- name: Add specific users to 'docker' group
+  user:
+    name: '{{ item }}'
+    groups: 'docker'
+    append: True
+  with_items: '{{ docker_users }}'
+  when: item|d()
+
+- name: Change docker directory
+  lineinfile:
+    dest: /lib/systemd/system/docker.service
+    regexp: '^ExecStart'
+    line: 'ExecStart=/usr/bin/dockerd -g /opt/app/docker -H fd://'
+  register: directory_changed
+
+- name: Systemctl daemon-reload if directory changed
+  command: 'systemctl daemon-reload'
+  when: directory_changed|changed
+
+- name: Restart if directory changed
+  service:
+    name: docker.service
+    state: restarted
+  when: directory_changed|changed

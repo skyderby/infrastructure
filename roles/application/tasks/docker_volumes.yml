@@ -1,0 +1,31 @@
+---
+- name: Docker volume | Check pg_wal_archive
+  shell: docker volume ls | grep pg_wal_archive
+  register: pg_wal_archive_check
+  changed_when: False
+
+- name: Docker volume | Create pg_wal_archive
+  shell: docker volume create pg_wal_archive
+  when: pg_wal_archive_check|failed
+
+- name: Docker volume | Set pg_wal_archive permissions
+  shell: 'chown -R 999:999 $(docker volume inspect pg_wal_archive --format "{{ .Mountpoint }}")'
+  when: pg_wal_archive_check|failed
+
+- name: Docker volume | Check app_system
+  shell: docker volume ls | grep app_system
+  register: app_system_check
+  changed_when: False
+
+- name: Docker volume | Create app_system
+  shell: docker volume create app_system
+  when: app_system_check|failed
+
+- name: Docker volume | Check redis_data
+  shell: docker volume ls | grep redis_data
+  register: redis_data_check
+  changed_when: False
+
+- name: Docker volume | Create redis_data
+  shell: docker volume create redis_data
+  when: redis_data_check|failed

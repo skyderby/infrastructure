@@ -1,0 +1,16 @@
+- name: NGINX | directory
+  file: 
+    path: "{{ app_home }}/nginx"
+    state: directory
+
+- name: NGINX | configuration
+  copy:
+    src: nginx/nginx.conf
+    dest: "{{ app_home }}/nginx/"
+  notify: Restart NGINX
+
+- name: NGINX | dhparam.pem
+  copy:
+    src: nginx/dhparam.pem
+    dest: "{{ app_home }}/nginx/"
+  notify: Restart NGINX

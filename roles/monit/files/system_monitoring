@@ -1,0 +1,14 @@
+check system skyderby.ru
+    if loadavg (5min) > 3 for 2 cycles then alert
+    if loadavg (15min) > 1 for 2 cycles then alert
+    if memory usage > 80% for 2 cycles then alert
+    if swap usage > 20% for 2 cycles then alert
+    if cpu usage (user) > 80% for 2 cycles then alert
+    if cpu usage (system) > 20% for 2 cycles then alert
+    if cpu usage (wait) > 20% for 2 cycles then alert
+
+check filesystem "root" with path /dev/vda1
+    if space usage > 80% for 4 cycles then alert
+
+check filesystem "app" with path /opt/app
+    if space usage > 70% for 4 cycles then alert

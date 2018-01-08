@@ -1,0 +1,10 @@
+---
+- hosts: production
+  roles:
+    - { role: common, tags: [ 'common'] }
+    - docker
+    - docker-compose
+    - awscli
+    - { role: monit, tags: [ 'monit' ] }
+    - app_backup
+    - { role: application, tags: [ 'application' ] }

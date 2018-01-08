@@ -1,0 +1,10 @@
+---
+- name: Docker compose file
+  copy:
+    src: "{{ item }}"
+    dest: "{{ app_home }}"
+  with_items:
+    - app.env
+    - db.env
+    - docker-compose.yml
+  notify: Soft recreate containers

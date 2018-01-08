@@ -1,0 +1,77 @@
+---
+- hosts: all
+
+  pre_tasks:
+    - name: Copy maintenance setup
+      copy:
+        src: rolling_update/maintenance
+        dest: "{{ app_home }}"
+
+  tasks:
+    - name: Pull latest app image
+      shell: docker pull skyderby/app:latest
+
+    - name: Stop web-server
+      shell: docker-compose stop web
+      args:
+        chdir: "{{ app_home }}"
+
+    - name: Remove maintenance web-server if present
+      shell: docker rm -f nginx-maintenance
+      ignore_errors: yes
+
+    - name: Deploy maintenance web-server
+      shell: >
+        docker run -d
+        -p 80:80 -p 443:443
+        --volume {{ app_home }}/maintenance/nginx.conf:/etc/nginx/nginx.conf:ro
+        --volume {{ app_home }}/maintenance/maintenance.html:/opt/app/maintenance.html:ro
+        --volume {{ app_home }}/ssl:/etc/pki/nginx:ro
+        --volume /etc/letsencrypt:/etc/letsencrypt:ro
+        --name nginx-maintenance
+        nginx:stable
+      args:
+        chdir: "{{ app_home }}"
+
+    - name: Stop app and workers containers
+      shell: docker-compose stop app workers
+      args:
+        chdir: "{{ app_home }}"
+
+    - name: Remove app and workers containers
+      shell: docker-compose rm -v -f app workers
+      args:
+        chdir: "{{ app_home }}"
+
+    - name: Deploy new version
+      shell: docker-compose up --no-deps --force-recreate -d app workers
+      args:
+        chdir: "{{ app_home }}"
+
+    - name: Wait app to start
+      shell: 'docker-compose exec -T app curl --fail http://127.0.0.1:8000/ping || exit 1'
+      register: result
+      until: result|success
+      retries: 30
+      delay: 1
+      changed_when: False
+      args:
+        chdir: "{{ app_home }}"
+
+    - name: Remove maintenance web-server
+      shell: docker rm -f -v nginx-maintenance
+
+    - name: Starting web-server
+      shell: docker-compose up -d --no-deps web
+      args:
+        chdir: "{{ app_home }}"
+
+    - name: Clean old images
+      shell: docker rmi $(docker images --filter "dangling=true" -q --no-trunc)
+      ignore_errors: yes
+
+  post_tasks:
+    - name: Cleanup maintenance setup files
+      file:
+        state: absent
+        path: "{{ app_home }}/maintenance"
