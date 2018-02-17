@@ -57,6 +57,12 @@ services:
       - "443:443"
     restart: always
 
+  track-scanner:
+    image: skyderby/track-scanner:latest
+    ports:
+      - 80
+    restart: always
+
 volumes:
   redis_data:
     external: true
