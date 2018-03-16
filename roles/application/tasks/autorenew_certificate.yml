@@ -1,0 +1,16 @@
+---
+- name: Copy cron script
+  copy:
+    src: ../files/cron/renew_certificate.sh
+    dest: /root/cron_scripts/
+    mode: 500
+  tags: certbot
+
+- name: Cron job | Renew certificate
+  cron:
+    name: Renew SSL certificate
+    minute: 0
+    hour: 7
+    day: 10
+    job: /root/cron_scripts/renew_certificate.sh
+  tags: certbot

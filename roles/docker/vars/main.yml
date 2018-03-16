@@ -10,7 +10,7 @@ apt_repository: "deb [arch=amd64] https://download.docker.com/linux/{{ ansible_d
 
 # Version and edition
 docker_edition: ce
-docker_version: 17.12.0
+docker_version: 17.12.1
 docker_distribution: '{{ ansible_local.core.distribution
                          if (ansible_local|d() and ansible_local.core|d() and
                              ansible_local.core.distribution|d())
