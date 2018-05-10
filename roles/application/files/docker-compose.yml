@@ -50,6 +50,7 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/dhparam.pem:/etc/pki/nginx/dhparam.pem:ro
       - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /opt/app/skyderby/blog:/opt/blog:ro
     volumes_from:
       - app:ro
     ports:
